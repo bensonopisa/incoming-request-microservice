@@ -8,7 +8,7 @@
 		<version>3.2.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>ke.co.pesalink.papss.incoming</groupId>
+	<groupId>ke.co.pesalink.papss.adapter</groupId>
 	<artifactId>credit-transfer-producer-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>credit-transfer-producer-service</name>
