@@ -1,29 +1,18 @@
 package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 
-import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.logging.LogLevel;
-
+import org.springframework.http.HttpStatusCode;
 
 public class LoggerUtil {
+    private static final Logger logger = LoggerFactory.getLogger(LoggerUtil.class);
+    // prevent instantiation
+    private LoggerUtil() {}
+    public static void infoLog(String message) {
+        logger.info("Message : {} ", message);
+    }
 
-    protected static final Logger logger = LoggerFactory.getLogger(LoggerUtil.class);
-
-    public void log(String message, @Nullable String className, @Nullable String method, LogLevel logLevel) {
-        switch(logLevel)  {
-            case INFO -> {
-
-            }
-            case ERROR -> {
-
-            }
-            case DEBUG  -> {
-
-            }
-            case TRACE -> {
-
-            }
-        }
+    public static void errorLog(HttpStatusCode httpStatusCode, String message) {
+        logger.error("Error encountered: {} | Message {}", httpStatusCode, message);
     }
 }
