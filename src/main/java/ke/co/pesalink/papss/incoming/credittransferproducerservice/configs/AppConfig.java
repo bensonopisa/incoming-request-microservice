@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -61,6 +62,6 @@ public class AppConfig {
     private String ipsMessagePath;
 
     @Value("${papss.security.keyStorePath}")
-    private String keyStorePath;
+    private Resource keyStorePath;
 }
 

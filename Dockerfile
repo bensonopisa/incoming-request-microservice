@@ -1,22 +1,20 @@
-# Use a base image with Java 17 (You can choose a different base image if needed)
-# creates a layer from the openjdk:17-alpine Docker image.
-FROM openjdk:17-alpine
-
-LABEL maintainer="idiba@user.co.ke"
-
-# Install curl
-RUN apk --no-cache add curl
-
-# cd /app
+# Use a base image with Java and Maven installed
+FROM maven:3.8.4-openjdk-17-slim AS build
+# Set the working directory inside the container
 WORKDIR /app
-
-# Refer to Maven build -> finalName
-ARG JAR_FILE=target/cbk-gdi-*.jar
-
-# cp target/spring-gitlab-ci-0.0.1-SNAPSHOT.jar /app/spring-gitlab-ci.jar
-COPY ${JAR_FILE} cbk-gdi.jar
-
-# java -jar /app/spring-gitlab-ci.jar
-CMD ["java", "-jar", "-Xmx1024M",  "-Dspring.profiles.active=dev", "/app/cbk-gdi.jar"]
-
-EXPOSE 8700
+# Copy the pom.xml file
+COPY pom.xml .
+# Download dependencies and cache them in a separate layer
+RUN mvn dependency:go-offline -B
+# Copy the source code into the container
+COPY src ./src
+# Build the JAR file
+RUN mvn package -DskipTests
+# Start a new stage to create a lightweight image
+FROM openjdk:17-slim
+# Set the working directory inside the container
+WORKDIR /app
+# Copy the JAR file from the previous stage
+COPY --from=build /app/target/papss-incoming-request-service-*.jar app.jar
+# Specify the command to run your application
+CMD ["java", "-jar", "app.jar"]

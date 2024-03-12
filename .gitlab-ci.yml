@@ -36,6 +36,7 @@ test:
     - mil-maven
   script:
     - echo "Maven test started"
+    - copy
     - mvn test
   only:
     - merge_requests
