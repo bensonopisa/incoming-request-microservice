@@ -1,20 +1,26 @@
-# Use a base image with Java and Maven installed
-FROM maven:3.8.4-openjdk-17-slim AS build
-# Set the working directory inside the container
+FROM openjdk:17-alpine
+
+LABEL MAINTAINER = "bopisa@ipsl.co.ke"
+
+ENV TZ=Africa/Nairobi
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apk --no-cache add curl
+
+# cd /app
 WORKDIR /app
-# Copy the pom.xml file
-COPY pom.xml .
-# Download dependencies and cache them in a separate layer
-RUN mvn dependency:go-offline -B
-# Copy the source code into the container
-COPY src ./src
-# Build the JAR file
-RUN mvn package -DskipTests
-# Start a new stage to create a lightweight image
-FROM openjdk:17-slim
-# Set the working directory inside the container
-WORKDIR /app
-# Copy the JAR file from the previous stage
-COPY --from=build /app/target/papss-incoming-request-service-*.jar app.jar
-# Specify the command to run your application
-CMD ["java", "-jar", "app.jar"]
+
+# Refer to Maven build -> finalName
+ARG JAR_FILE=target/papss-incoming-request-service-*.jar
+
+ARG KEY_STORE_FILE_PATH=target/classes/client.jks
+
+COPY ${KEY_STORE_FILE_PATH} client.jks
+
+# cp target/spring-gitlab-ci-0.0.1-SNAPSHOT.jar /app/spring-gitlab-ci.jar
+COPY ${JAR_FILE} app.jar
+
+# java -jar /app/spring-gitlab-ci.jar
+# CMD ["java", "-jar", "-Xmx1024M",  "-Dspring.profiles.active=dev", "/app/confirmation-service.jar"]
+CMD ["java", "-jar", "-Xmx1024M","-Dpapss.security.keyStorePath=/app/client.jks","/app/app.jar"]
