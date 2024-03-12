@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -38,13 +39,29 @@ public class AppConfig {
     @Value("${adapter.poller.interval.seconds}")
     private Duration pollerInterval;
 
-    @Value("${papss.messages.endpoint}")
-    private String fetchMessageUrl;
 
     @Value("${adapter.inbout.queue.persistence}")
     private String peristenceQueue;
 
     @Value("${adapter.inbound.routingKey.persistence}")
     private String persistenceRoutingKey;
+
+    @Value("${papss.security.keyAlias}")
+    private String keyStoreAlias;
+    @Value("${papss.security.keystoreType}")
+    private String keyStoreType;
+    @Value("${papss.security.provider}")
+    private String keyStoreProvider;
+    @Value("${papss.security.keyPass}")
+    private String keyStorePassword;
+    @Value("${papss.ips.Dns}")
+    private String papssIpsDns;
+    @Value("${papss.ips.port}")
+    private int papssIpsPort;
+    @Value("${papss.poll.messages.path}")
+    private String ipsMessagePath;
+
+    @Value("${papss.security.keyStorePath}")
+    private Resource keyStorePath;
 }
 
