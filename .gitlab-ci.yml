@@ -1,0 +1,74 @@
+variables:
+  MAVEN_OPTS: -Dmaven.repo.local=.m2/repository
+  APP_IMAGE: papss-incoming-request-service
+  REGISTRY_HOST: 10.185.13.110
+  REGISTRY_PORT: 5000
+#  IMAGE_PORT: 8080
+
+stages:
+  - build
+  - test
+  - package
+  - deploy
+
+cache:
+  paths:
+    - .m2/repository
+    - target
+
+build:
+  stage: build
+  tags:
+    - mil-maven
+  script:
+    - echo "Maven compile started"
+    - java -version
+    - echo $JAVA_HOME
+    - mvn compile
+  only:
+    - merge_requests
+    - main
+ 
+
+test:
+  stage: test
+  tags:
+    - mil-maven
+  script:
+    - echo "Maven test started"
+    - mvn test
+  only:
+    - merge_requests
+    - main
+ 
+package:
+  stage: package
+  tags:
+    - mil-maven
+  script:
+    - echo "Maven package started"
+    - mvn package
+  only:
+    - main
+ 
+
+deploy:
+  variables:
+    app_name: "papss-incoming-request-service"
+    DOCKER_IMAGE: $APP_IMAGE
+    DOCKER_REGISTRY_IMAGE: $REGISTRY_HOST:$REGISTRY_PORT/$APP_IMAGE
+  stage: deploy
+  tags:
+    - mil-maven
+  script:
+    # - NEXT_VERSION=$(echo $CURRENT_VERSION | awk -F'.' '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+    - PROJECT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+    - echo $PROJECT_VERSION
+    # Build the Docker image with the new version
+    - docker build -t $DOCKER_IMAGE --build-arg APP_VERSION=$PROJECT_VERSION .
+    # Tag the image with the new version and push it to the registry
+    - docker run -d --name $app_name $DOCKER_IMAGE
+    - docker tag $DOCKER_IMAGE $DOCKER_REGISTRY_IMAGE:$PROJECT_VERSION
+    - docker push $DOCKER_REGISTRY_IMAGE:$PROJECT_VERSION
+  only:
+    - main
