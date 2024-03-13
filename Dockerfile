@@ -20,5 +20,7 @@ COPY src/main/resources/client.jks /app/client.jks
 # copy the archived file and rename it as app.jar
 COPY ${JAR_FILE} app.jar
 
+ENV JAVA_OPTS="-Djavax.net.ssl.keyStore=/app/client.jks -Djavax.net.ssl.keyStorePassword=secret"
+
 # run the application
 CMD ["java", "-jar", "-Xmx1024M","/app/app.jar"]
