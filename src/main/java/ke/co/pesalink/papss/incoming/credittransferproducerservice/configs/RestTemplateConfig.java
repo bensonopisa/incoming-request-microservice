@@ -22,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.security.*;
-import java.security.cert.CertificateException;
 
 /**
  * Rest client configurations

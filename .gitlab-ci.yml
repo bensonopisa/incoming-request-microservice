@@ -5,6 +5,8 @@ variables:
   REGISTRY_PORT: 5000
 #  IMAGE_PORT: 8080
 
+
+
 stages:
   - build
   - test
@@ -57,6 +59,7 @@ deploy:
     app_name: "papss-incoming-request-service"
     DOCKER_IMAGE: $APP_IMAGE
     DOCKER_REGISTRY_IMAGE: $REGISTRY_HOST:$REGISTRY_PORT/$APP_IMAGE
+    PAPSS_NAME_SERVER: 10.185.13.123
   stage: deploy
   tags:
     - mil-maven
@@ -67,7 +70,9 @@ deploy:
     # Build the Docker image with the new version
     - docker build -t $DOCKER_IMAGE --build-arg APP_VERSION=$PROJECT_VERSION .
     # Tag the image with the new version and push it to the registry
-    - docker run -d --name $app_name $DOCKER_IMAGE
+#    - docker run 10.185.13.123 -d --name $app_name $DOCKER_IMAGE
+    - docker run -d --name $app_name --add-host=pm.test.papssnet.papss.com:${PAPSS_NAME_SERVER} $DOCKER_IMAGE
+
     - docker tag $DOCKER_IMAGE $DOCKER_REGISTRY_IMAGE:$PROJECT_VERSION
     - docker push $DOCKER_REGISTRY_IMAGE:$PROJECT_VERSION
   only:
