@@ -15,7 +15,7 @@ WORKDIR /app
 ARG JAR_FILE=target/papss-incoming-request-service-*.jar
 
 # copy the client keystore to the root of the keystore
-COPY src/main/resources/client.jks client.jks
+COPY src/main/resources/client.jks /app/client.jks
 
 # copy the archived file and rename it as app.jar
 COPY ${JAR_FILE} app.jar
