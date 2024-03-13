@@ -43,13 +43,13 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             CertificateException, IOException, UnrecoverableKeyException {
 
-        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath().getFile().getPath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
         KeyManager[] keyManagers = buildKeyManagers(keyStore, appConfig.getKeyStorePassword().toCharArray());
         TrustManager[] trustManagers = buildTrustManagers(keyStore);
         SelectableAliasKeyManager sakm = new SelectableAliasKeyManager((X509ExtendedKeyManager) keyManagers[0], appConfig.getKeyStoreAlias());
 
         SSLContext sslContext = new SSLContextBuilder()
-                .loadTrustMaterial(new FileSystemResource(appConfig.getKeyStorePath().getFile()).getURL(), appConfig.getKeyStorePassword().toCharArray())
+                .loadTrustMaterial(new FileSystemResource(appConfig.getKeyStorePath()).getURL(), appConfig.getKeyStorePassword().toCharArray())
                 .loadKeyMaterial(keyStore, appConfig.getKeyStorePassword().toCharArray())
                 .build();
 
