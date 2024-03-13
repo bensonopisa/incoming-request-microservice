@@ -59,7 +59,7 @@ public class XmlUtils {
             throw new IOException("Cannot find the signature element");
         }
 
-        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath().getFile().getPath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
 
         DOMValidateContext domValidateContext = new DOMValidateContext(new KeyValueSelector(keyStore), nodeList.item(0));
 

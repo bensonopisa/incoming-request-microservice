@@ -6,15 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -23,8 +20,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.*;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -43,13 +38,13 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             CertificateException, IOException, UnrecoverableKeyException {
 
-        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath().getFile().getPath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
         KeyManager[] keyManagers = buildKeyManagers(keyStore, appConfig.getKeyStorePassword().toCharArray());
         TrustManager[] trustManagers = buildTrustManagers(keyStore);
         SelectableAliasKeyManager sakm = new SelectableAliasKeyManager((X509ExtendedKeyManager) keyManagers[0], appConfig.getKeyStoreAlias());
 
         SSLContext sslContext = new SSLContextBuilder()
-                .loadTrustMaterial(new FileSystemResource(appConfig.getKeyStorePath()).getURL(), appConfig.getKeyStorePassword().toCharArray())
+                .loadTrustMaterial(new FileSystemResource(appConfig.getKeyStorePath().getFile()).getURL(), appConfig.getKeyStorePassword().toCharArray())
                 .loadKeyMaterial(keyStore, appConfig.getKeyStorePassword().toCharArray())
                 .build();
 
@@ -69,6 +64,7 @@ public class RestTemplateConfig {
 
         ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
         RestTemplate restTemplate = new RestTemplate(requestFactory);
+//        restTemplate.setInterceptors();
         return restTemplate;
     }
 
