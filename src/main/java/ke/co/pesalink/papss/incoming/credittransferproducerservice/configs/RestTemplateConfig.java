@@ -10,11 +10,11 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
@@ -36,15 +36,16 @@ public class RestTemplateConfig {
     SharedMethods sharedMethods  = new SharedMethods();
     @Bean
     public RestTemplate restTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
-            CertificateException, IOException, UnrecoverableKeyException {
+            IOException, UnrecoverableKeyException {
 
-        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath().getFile().getPath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+        KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath().getInputStream(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+
         KeyManager[] keyManagers = buildKeyManagers(keyStore, appConfig.getKeyStorePassword().toCharArray());
         TrustManager[] trustManagers = buildTrustManagers(keyStore);
         SelectableAliasKeyManager sakm = new SelectableAliasKeyManager((X509ExtendedKeyManager) keyManagers[0], appConfig.getKeyStoreAlias());
 
         SSLContext sslContext = new SSLContextBuilder()
-                .loadTrustMaterial(new FileSystemResource(appConfig.getKeyStorePath().getFile()).getURL(), appConfig.getKeyStorePassword().toCharArray())
+                .loadTrustMaterial(keyStore, TrustAllStrategy.INSTANCE)
                 .loadKeyMaterial(keyStore, appConfig.getKeyStorePassword().toCharArray())
                 .build();
 

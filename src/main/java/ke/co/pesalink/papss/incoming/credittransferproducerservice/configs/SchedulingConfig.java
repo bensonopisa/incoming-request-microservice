@@ -31,14 +31,14 @@ public class SchedulingConfig implements SchedulingConfigurer, Runnable {
     protected final RestTemplate restTemplate;
     protected final AppConfig appConfig;
 
-    final XmlUtils xmlUtils;
+//    final XmlUtils xmlUtils;
     private final Logger logger = LoggerFactory.getLogger(SchedulingConfig.class);
 
     public SchedulingConfig(RestTemplate restTemplate, AppConfig appConfig) {
         this.restTemplate = restTemplate;
         this.appConfig = appConfig;
 
-        xmlUtils = new XmlUtils(appConfig);
+//        xmlUtils = new XmlUtils(appConfig);
     }
 
     @Override
