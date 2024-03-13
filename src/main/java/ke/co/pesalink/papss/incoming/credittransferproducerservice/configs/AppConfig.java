@@ -62,6 +62,6 @@ public class AppConfig {
     private String ipsMessagePath;
 
     @Value("${papss.security.keyStorePath}")
-    private String keyStorePath;
+    private Resource keyStorePath;
 }
 

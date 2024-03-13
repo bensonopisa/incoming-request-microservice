@@ -314,8 +314,9 @@ public class SchedulingConfig implements SchedulingConfigurer, Runnable {
                 Unmarshaller unmarshaller  = jaxbContext.createUnmarshaller();
 
                 Message message = (Message) unmarshaller.unmarshal(new InputSource(new StringReader(xml)));
-                logger.info("Agent institution id {}", message.getAppHdr().getFr().getFIId().getFinInstnId().getClrSysMmbId()
-                        .getClrSysId().getPrtry().trim());
+                String agentInstId = message.getAppHdr().getFr().getFIId().getFinInstnId().getClrSysMmbId()
+                        .getClrSysId().getPrtry().trim();
+                logger.info("Agent institution id {}", agentInstId);
 
             }catch(JAXBException jEx){
                 logger.error("Exception ", jEx);
