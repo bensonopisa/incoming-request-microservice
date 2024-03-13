@@ -14,13 +14,11 @@ WORKDIR /app
 # Refer to Maven build -> finalName
 ARG JAR_FILE=target/papss-incoming-request-service-*.jar
 
-ARG KEY_STORE_FILE_PATH=target/classes/client.jks
+# copy the client keystore to the root of the keystore
+COPY src/main/resources/client.jks /app/client.jks
 
-COPY ${KEY_STORE_FILE_PATH} client.jks
-
-# cp target/spring-gitlab-ci-0.0.1-SNAPSHOT.jar /app/spring-gitlab-ci.jar
+# copy the archived file and rename it as app.jar
 COPY ${JAR_FILE} app.jar
 
-# java -jar /app/spring-gitlab-ci.jar
-# CMD ["java", "-jar", "-Xmx1024M",  "-Dspring.profiles.active=dev", "/app/confirmation-service.jar"]
-CMD ["java", "-jar", "-Xmx1024M","-Dpapss.security.keyStorePath=/app/client.jks","/app/app.jar"]
+# run the application
+CMD ["java", "-jar", "-Xmx1024M","/app/app.jar"]
