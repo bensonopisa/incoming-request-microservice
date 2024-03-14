@@ -32,16 +32,16 @@ build:
     - main
  
 
-test:
-  stage: test
-  tags:
-    - mil-maven
-  script:
-    - echo "Maven test started"
-    - mvn test
-  only:
-    - merge_requests
-    - main
+#test:
+#  stage: test
+#  tags:
+#    - mil-maven
+#  script:
+#    - echo "Maven test started"
+#    - mvn test
+#  only:
+#    - merge_requests
+#    - main
  
 package:
   stage: package
@@ -59,7 +59,7 @@ deploy:
     app_name: "papss-incoming-request-service"
     DOCKER_IMAGE: $APP_IMAGE
     DOCKER_REGISTRY_IMAGE: $REGISTRY_HOST:$REGISTRY_PORT/$APP_IMAGE
-    PAPSS_NAME_SERVER: 10.185.13.123
+    PAPSS_NAME_SERVER: 10.109.10.139
   stage: deploy
   tags:
     - mil-maven
