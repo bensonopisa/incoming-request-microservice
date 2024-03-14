@@ -10,6 +10,11 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.h
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
+import lombok.Data;
+import lombok.Getter;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -45,7 +50,8 @@ import java.util.Calendar;
  * 
  * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@Getter
+@XmlAccessorType(XmlAccessType.FIELD )
 @XmlType(name = "BusinessApplicationHeaderV01", propOrder = {
     "charSet",
     "fr",
@@ -60,12 +66,10 @@ import java.util.Calendar;
     "sgntr",
     "rltd"
 })
-@XmlRootElement(name = "AppHdr")
-public class AppHdr
-    implements Serializable
-{
+@XmlRootElement(name = "AppHdr", namespace = "urn:iso:std:iso:20022:tech:xsd:head.001.001.01")
 
-    private final static long serialVersionUID = -1L;
+public class AppHdr implements Serializable {
+    private static final long serialVersionUID = -1L;
     @XmlElement(name = "CharSet")
     protected String charSet;
     @XmlElement(name = "Fr", required = true)
@@ -80,6 +84,7 @@ public class AppHdr
     protected String bizSvc;
     @XmlElement(name = "CreDt", required = true, type = String.class)
     @XmlSchemaType(name = "dateTime")
+    @XmlJavaTypeAdapter(Adapter1.class)
     protected Calendar creDt;
     @XmlElement(name = "CpyDplct")
     @XmlSchemaType(name = "string")
@@ -93,292 +98,56 @@ public class AppHdr
     @XmlElement(name = "Rltd")
     protected BusinessApplicationHeader1 rltd;
 
-    /**
-     * Gets the value of the charSet property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getCharSet() {
-        return charSet;
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
     }
 
-    /**
-     * Sets the value of the charSet property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setCharSet(String value) {
-        this.charSet = value;
+    public void setCharSet(String charSet) {
+        this.charSet = charSet;
     }
 
-    /**
-     * Gets the value of the fr property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Party9Choice }
-     *     
-     */
-    public Party9Choice getFr() {
-        return fr;
+    public void setFr(Party9Choice fr) {
+        this.fr = fr;
     }
 
-    /**
-     * Sets the value of the fr property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Party9Choice }
-     *     
-     */
-    public void setFr(Party9Choice value) {
-        this.fr = value;
+    public void setTo(Party9Choice to) {
+        this.to = to;
     }
 
-    /**
-     * Gets the value of the to property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Party9Choice }
-     *     
-     */
-    public Party9Choice getTo() {
-        return to;
+    public void setBizMsgIdr(String bizMsgIdr) {
+        this.bizMsgIdr = bizMsgIdr;
     }
 
-    /**
-     * Sets the value of the to property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Party9Choice }
-     *     
-     */
-    public void setTo(Party9Choice value) {
-        this.to = value;
+    public void setMsgDefIdr(String msgDefIdr) {
+        this.msgDefIdr = msgDefIdr;
     }
 
-    /**
-     * Gets the value of the bizMsgIdr property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getBizMsgIdr() {
-        return bizMsgIdr;
+    public void setBizSvc(String bizSvc) {
+        this.bizSvc = bizSvc;
     }
 
-    /**
-     * Sets the value of the bizMsgIdr property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setBizMsgIdr(String value) {
-        this.bizMsgIdr = value;
+    public void setCreDt(Calendar creDt) {
+        this.creDt = creDt;
     }
 
-    /**
-     * Gets the value of the msgDefIdr property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMsgDefIdr() {
-        return msgDefIdr;
+    public void setCpyDplct(CopyDuplicate1Code cpyDplct) {
+        this.cpyDplct = cpyDplct;
     }
 
-    /**
-     * Sets the value of the msgDefIdr property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMsgDefIdr(String value) {
-        this.msgDefIdr = value;
+    public void setPssblDplct(Boolean pssblDplct) {
+        this.pssblDplct = pssblDplct;
     }
 
-    /**
-     * Gets the value of the bizSvc property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getBizSvc() {
-        return bizSvc;
+    public void setPrty(String prty) {
+        this.prty = prty;
     }
 
-    /**
-     * Sets the value of the bizSvc property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setBizSvc(String value) {
-        this.bizSvc = value;
+    public void setSgntr(SignatureEnvelope sgntr) {
+        this.sgntr = sgntr;
     }
 
-    /**
-     * Gets the value of the creDt property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public Calendar getCreDt() {
-        return creDt;
+    public void setRltd(BusinessApplicationHeader1 rltd) {
+        this.rltd = rltd;
     }
-
-    /**
-     * Sets the value of the creDt property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setCreDt(Calendar value) {
-        this.creDt = value;
-    }
-
-    /**
-     * Gets the value of the cpyDplct property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link CopyDuplicate1Code }
-     *     
-     */
-    public CopyDuplicate1Code getCpyDplct() {
-        return cpyDplct;
-    }
-
-    /**
-     * Sets the value of the cpyDplct property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link CopyDuplicate1Code }
-     *     
-     */
-    public void setCpyDplct(CopyDuplicate1Code value) {
-        this.cpyDplct = value;
-    }
-
-    /**
-     * Gets the value of the pssblDplct property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Boolean }
-     *     
-     */
-    public Boolean isPssblDplct() {
-        return pssblDplct;
-    }
-
-    /**
-     * Sets the value of the pssblDplct property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Boolean }
-     *     
-     */
-    public void setPssblDplct(Boolean value) {
-        this.pssblDplct = value;
-    }
-
-    /**
-     * Gets the value of the prty property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getPrty() {
-        return prty;
-    }
-
-    /**
-     * Sets the value of the prty property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setPrty(String value) {
-        this.prty = value;
-    }
-
-    /**
-     * Gets the value of the sgntr property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link SignatureEnvelope }
-     *     
-     */
-    public SignatureEnvelope getSgntr() {
-        return sgntr;
-    }
-
-    /**
-     * Sets the value of the sgntr property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link SignatureEnvelope }
-     *     
-     */
-    public void setSgntr(SignatureEnvelope value) {
-        this.sgntr = value;
-    }
-
-    /**
-     * Gets the value of the rltd property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BusinessApplicationHeader1 }
-     *     
-     */
-    public BusinessApplicationHeader1 getRltd() {
-        return rltd;
-    }
-
-    /**
-     * Sets the value of the rltd property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BusinessApplicationHeader1 }
-     *     
-     */
-    public void setRltd(BusinessApplicationHeader1 value) {
-        this.rltd = value;
-    }
-
 }

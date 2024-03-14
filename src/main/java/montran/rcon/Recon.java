@@ -9,6 +9,9 @@
 package montran.rcon;
 
 import jakarta.xml.bind.annotation.*;
+import lombok.Data;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,11 +50,9 @@ import java.util.List;
     "total"
 })
 @XmlRootElement(name = "recon")
-public class Recon
-    implements Serializable
-{
-
-    private final static long serialVersionUID = -1L;
+@Data
+public class Recon implements Serializable {
+    private static final long serialVersionUID = -1L;
     @XmlElement(required = true)
     protected SettlementInfo settlement;
     @XmlElement(name = "tran")
@@ -63,129 +64,8 @@ public class Recon
     @XmlElement(required = true)
     protected Summary total;
 
-    /**
-     * Gets the value of the settlement property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link SettlementInfo }
-     *     
-     */
-    public SettlementInfo getSettlement() {
-        return settlement;
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
     }
-
-    /**
-     * Sets the value of the settlement property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link SettlementInfo }
-     *     
-     */
-    public void setSettlement(SettlementInfo value) {
-        this.settlement = value;
-    }
-
-    /**
-     * Gets the value of the tren property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the Jakarta XML Binding object.
-     * This is why there is not a <CODE>set</CODE> method for the tren property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getTren().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Transaction }
-     * 
-     * 
-     */
-    public List<Transaction> getTren() {
-        if (tren == null) {
-            tren = new ArrayList<Transaction>();
-        }
-        return this.tren;
-    }
-
-    /**
-     * Gets the value of the totalSent property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Summary }
-     *     
-     */
-    public Summary getTotalSent() {
-        return totalSent;
-    }
-
-    /**
-     * Sets the value of the totalSent property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Summary }
-     *     
-     */
-    public void setTotalSent(Summary value) {
-        this.totalSent = value;
-    }
-
-    /**
-     * Gets the value of the totalReceived property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Summary }
-     *     
-     */
-    public Summary getTotalReceived() {
-        return totalReceived;
-    }
-
-    /**
-     * Sets the value of the totalReceived property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Summary }
-     *     
-     */
-    public void setTotalReceived(Summary value) {
-        this.totalReceived = value;
-    }
-
-    /**
-     * Gets the value of the total property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Summary }
-     *     
-     */
-    public Summary getTotal() {
-        return total;
-    }
-
-    /**
-     * Sets the value of the total property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Summary }
-     *     
-     */
-    public void setTotal(Summary value) {
-        this.total = value;
-    }
-
 }

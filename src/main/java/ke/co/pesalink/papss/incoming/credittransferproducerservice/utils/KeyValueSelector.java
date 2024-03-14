@@ -2,7 +2,6 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.task.TaskExecutionProperties;
 
 import javax.security.auth.x500.X500Principal;
 import javax.xml.crypto.*;
@@ -21,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 
 public class KeyValueSelector extends KeySelector {
-
     private final KeyStore keyStore;
     public KeyValueSelector(KeyStore keyStore) {
         this.keyStore = keyStore;
