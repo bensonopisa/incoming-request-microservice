@@ -51,6 +51,7 @@ public class XmlUtils {
         if(nodeList.getLength() == 0) {
             throw new IOException("Cannot find the signature element");
         }
+
         SharedMethods sharedMethods = new SharedMethods();
 
         InputStream is = appConfig.getKeyStorePath().getInputStream();

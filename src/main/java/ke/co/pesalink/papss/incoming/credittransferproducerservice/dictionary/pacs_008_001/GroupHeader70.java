@@ -11,7 +11,6 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.XmlGregorianCalendarAdapter;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;

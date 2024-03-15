@@ -11,9 +11,6 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.XmlCalendarAdapter;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.XmlGregorianCalendarAdapter;
-//import org.w3._2001.xmlschema.Adapter1;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
@@ -77,7 +74,7 @@ public class GroupHeader72
     protected String msgId;
     @XmlElement(name = "CreDtTm", required = true, type = String.class)
     @XmlSchemaType(name = "dateTime")
-//    @XmlJavaTypeAdapter(Adapter1.class)
+    @XmlJavaTypeAdapter(Adapter1.class)
     protected Calendar creDtTm;
     @XmlElement(name = "Authstn")
     protected List<Authorisation1Choice> authstns;

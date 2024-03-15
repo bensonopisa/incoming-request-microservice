@@ -37,8 +37,8 @@ public class MessageRoutingService {
     }
 
     public void enQueue(String messageType, String messageBody) {
-        String key = this.router.get(messageType);
-        sendToQueue(key, messageBody);
+        String value = this.router.get(messageType);
+        sendToQueue(value, messageBody);
     }
 
     private void sendToQueue(String routingKey, String body) {

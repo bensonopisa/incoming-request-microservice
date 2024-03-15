@@ -13,7 +13,7 @@ import java.time.Duration;
 @EnableScheduling
 @Configuration
 @RequiredArgsConstructor
-public class SchedulingConfig implements SchedulingConfigurer {
+public class SchedulingConfig implements SchedulingConfigurer{
     private final MessagePollerService messagePollerService;
 
     @Override

@@ -3,6 +3,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.util.Random;
 
 public class SharedMethods {
     public synchronized KeyStore loadKeystore(InputStream is, char[] password, String keystoreType) throws KeyStoreException {
