@@ -64,5 +64,19 @@ public class AppConfig {
 
     @Value("${papss.security.keyStorePath}")
     private Resource keyStorePath;
+    @Value("${papss.header.channel.key}")
+    private String papssChannelHeaderKey;
+
+    @Value("${papss.header.channel.value}")
+    private String papssChannelHeaderValue;
+
+    @Value("${papss.header.version.key}")
+    private String papssVersionHeaderKey;
+
+    @Value("${papss.header.version.value}")
+    private String papssVersionHeaderValue;
+
+    @Value("${incoming.credit-transfer.request.type}")
+    private String creditTransferType;
 }
 

@@ -1,10 +1,18 @@
 package ke.co.pesalink.papss.incoming.credittransferproducerservice.service;
 
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.acmt_023_001.IdentificationVerificationRequestV02;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.pacs_008_001.FIToFICustomerCreditTransferV07;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.pacs_028_001.FIToFIPaymentStatusRequestV02;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.dto.AdapterTransactionRequest;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.ProcessingFailedException;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.UnmarshallException;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.HttpClient;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.XmlUtils;
-import lombok.RequiredArgsConstructor;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.Constants;
 import lombok.extern.slf4j.Slf4j;
+import montran.message.Message;
+import montran.rcon.Recon;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpException;
 import org.springframework.http.HttpHeaders;
@@ -20,20 +28,28 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyStoreException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Objects;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class MessagePollerService implements MessagePoller{
-    // @Todo replace logger with aspect oriented logging
-    
     private final AppConfig appConfig;
 
     private final HttpClient httpClient;
 
     private final MessageRoutingService messageRoutingService;
+
+    private final XmlUtils xmlUtils;
+
+    public MessagePollerService(AppConfig appConfig, HttpClient httpClient, MessageRoutingService messageRoutingService) {
+        this.appConfig = appConfig;
+        this.httpClient = httpClient;
+        this.messageRoutingService = messageRoutingService;
+        this.xmlUtils = new XmlUtils(appConfig);
+    }
+
 
     @Override
     public void run() {
@@ -98,7 +114,16 @@ public class MessagePollerService implements MessagePoller{
             return;
         }
         log.info("Message {}", message);
-        if(messageType != null){
+
+        if (messageType != null ){
+            if (messageType.equals(Constants.recon001)) {
+                Recon recon  = (Recon) xmlUtils.unmarshall(message, Recon.class);
+
+                log.info("Recon {}", recon);
+
+                return;
+            }
+
             routeMessageToQueue(messageType, message);
         }
     }
@@ -118,11 +143,48 @@ public class MessagePollerService implements MessagePoller{
      * @apiNote route messages to appropriate queue based on the message type
      * @param messageType the type of message
      */
-    private void routeMessageToQueue(String messageType, String message) {
+    private void routeMessageToQueue(String messageType, String messageBody) {
         Objects.requireNonNull(messageType, "message type cannot be null");
 
+        String payload = "";
+        Message message = readRequestBody(messageBody);
 
+       try{
+           switch(messageType) {
+               case Constants.pacs008 ->  {
+                   // this is a credit transfer request
+                   FIToFICustomerCreditTransferV07 creditTransfer = message.getFIToFICstmrCdtTrf();
+                   payload = xmlUtils.marshall(creditTransfer);
+               }
+               case Constants.acmt023 ->  {
+                   // account validation
+                   IdentificationVerificationRequestV02 verificationRequest = message.getIdVrfctnReq();
+                   payload = xmlUtils.marshall(verificationRequest);
+               }
+               case Constants.pac028 -> {
+                   // tsq
+                   FIToFIPaymentStatusRequestV02 paymentStatusRequest = message.getFIToFIPmtStsReq();
+                   payload = xmlUtils.marshall(paymentStatusRequest);
+               }
+               default -> {
+                    log.info("Received message at {}", message.getAppHdr().getCreDt());
+                    return;
+               }
+           }
+       }catch(Exception e) {
+           log.error("Error encountered while marshalling messages ", e);
+       }
+        AdapterTransactionRequest adapterTransactionRequest = new AdapterTransactionRequest(payload, appConfig.getCreditTransferType(), LocalDateTime.now());
+        messageRoutingService.enQueue(messageType, adapterTransactionRequest);
+    }
 
-        messageRoutingService.enQueue(messageType, message);
+    Message readRequestBody(String body) {
+        try {
+            return (Message) xmlUtils.unmarshall(body, Message.class);
+        }catch(UnmarshallException e) {
+            throw new ProcessingFailedException("Failed to marshall request body", e);
+        }
     }
 }
+
+

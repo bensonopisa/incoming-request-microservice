@@ -3,6 +3,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.UnmarshallException;
@@ -23,9 +24,16 @@ import javax.xml.crypto.dsig.dom.DOMValidateContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.Iterator;
@@ -94,7 +102,7 @@ public class XmlUtils {
      * @param <T>     generic identifier
      * @throws UnmarshallException  thrown when there is an error with the marshalling
      */
-    public <T> Object marshalXML(String xmlBody , Class<T> clazz) throws UnmarshallException {
+    public <T> Object unmarshall(String xmlBody , Class<T> clazz) throws UnmarshallException {
         JAXBContext jaxbContext;
 
         try {
@@ -106,5 +114,42 @@ public class XmlUtils {
         }catch(JAXBException jaxbException) {
             throw new UnmarshallException("Error when unmarshalling the message", jaxbException);
         }
+    }
+
+    public String marshall(Object data) throws Exception{
+        JAXBContext jaxbContext;
+
+        try {
+            jaxbContext = JAXBContext.newInstance(data.getClass());
+            Marshaller marshaller = jaxbContext.createMarshaller();
+
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newDefaultNSInstance();
+
+            dbFactory.setNamespaceAware(true);
+
+            DocumentBuilder documentBuilder  = dbFactory.newDocumentBuilder();
+
+            Document doc = documentBuilder.newDocument();
+
+            marshaller.marshal(data, doc);
+
+            return transform(doc);
+
+        }catch(JAXBException jaxbException) {
+            throw new UnmarshallException("Error when unmarshalling the message", jaxbException);
+        }
+    }
+
+    protected String transform(Document document) throws TransformerException {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+
+        StringWriter stringWriter = new StringWriter();
+
+        transformer.transform(new DOMSource(document), new StreamResult(stringWriter));
+
+        return stringWriter.toString();
     }
 }

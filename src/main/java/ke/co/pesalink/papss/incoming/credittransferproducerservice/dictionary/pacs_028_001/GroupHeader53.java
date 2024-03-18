@@ -10,6 +10,8 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
+import lombok.Setter;
 //import org.w3._2001.xmlschema.Adapter1;
 
 import java.io.Serializable;
@@ -45,15 +47,13 @@ import java.util.Calendar;
     "instgAgt",
     "instdAgt"
 })
-public class GroupHeader53
-    implements Serializable
-{
+public class GroupHeader53 implements Serializable {
 
     private final static long serialVersionUID = -1L;
     @XmlElement(name = "MsgId", required = true)
     protected String msgId;
     @XmlElement(name = "CreDtTm", required = true, type = String.class)
-//    @XmlJavaTypeAdapter(Adapter1 .class)
+    @XmlJavaTypeAdapter(Adapter1.class)
     @XmlSchemaType(name = "dateTime")
     protected Calendar creDtTm;
     @XmlElement(name = "InstgAgt")
@@ -90,7 +90,7 @@ public class GroupHeader53
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link Calendar }
      *     
      */
     public Calendar getCreDtTm() {
@@ -102,12 +102,12 @@ public class GroupHeader53
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link Calendar }
      *     
      */
-    public void setCreDtTm(Calendar value) {
-        this.creDtTm = value;
-    }
+//    public void setCreDtTm(Calendar value) {
+//        this.creDtTm = value;
+//    }
 
     /**
      * Gets the value of the instgAgt property.

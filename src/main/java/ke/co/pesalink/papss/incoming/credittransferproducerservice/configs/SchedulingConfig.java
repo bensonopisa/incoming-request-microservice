@@ -7,8 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-import java.time.Duration;
-
 
 @EnableScheduling
 @Configuration
@@ -16,8 +14,10 @@ import java.time.Duration;
 public class SchedulingConfig implements SchedulingConfigurer{
     private final MessagePollerService messagePollerService;
 
+    private final AppConfig appConfig;
+
     @Override
     public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-        taskRegistrar.addFixedRateTask(messagePollerService, Duration.ofSeconds(5));
+        taskRegistrar.addFixedRateTask(messagePollerService, appConfig.getPollerInterval());
     }
 }

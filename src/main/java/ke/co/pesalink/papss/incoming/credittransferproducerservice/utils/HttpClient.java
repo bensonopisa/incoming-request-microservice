@@ -1,6 +1,7 @@
 package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 
 
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
 import org.apache.hc.core5.http.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,11 @@ import java.util.Map;
 public class HttpClient {
     private final RestTemplate restTemplate;
     private final Logger logger = LoggerFactory.getLogger(HttpClient.class);
-    public HttpClient(RestTemplate restTemplate) {
+
+    private final AppConfig appConfig;
+    public HttpClient(RestTemplate restTemplate, AppConfig appConfig) {
         this.restTemplate = restTemplate;
+        this.appConfig = appConfig;
     }
 
     public ResponseEntity<String> makeHttpCall(URI url, HttpMethod method, @Nullable String body, Map<String, String> additionalHeaders) throws HttpException {
@@ -27,8 +31,8 @@ public class HttpClient {
         HttpHeaders httpHeaders = new HttpHeaders();
 
         httpHeaders.setContentType(MediaType.APPLICATION_XML);
-        httpHeaders.add("X-PAPSSRTP-Channel", "KE9");
-        httpHeaders.add("X-PAPSS-RTP-Version", "1");
+        httpHeaders.add(appConfig.getPapssChannelHeaderKey(), appConfig.getPapssChannelHeaderValue());
+        httpHeaders.add(appConfig.getPapssVersionHeaderKey(), appConfig.getPapssVersionHeaderKey());
 
         for (Map.Entry<String,String> entry : additionalHeaders.entrySet()) {
             httpHeaders.add(entry.getKey(), entry.getValue());

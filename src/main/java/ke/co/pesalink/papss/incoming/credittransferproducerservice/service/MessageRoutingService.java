@@ -2,6 +2,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.service;
 
 import jakarta.annotation.PostConstruct;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.dto.AdapterTransactionRequest;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.Constants;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -36,12 +37,12 @@ public class MessageRoutingService {
         router.put(Constants.recon001, appConfig.getCreditTransferRoutingKey());
     }
 
-    public void enQueue(String messageType, String messageBody) {
+    public void enQueue(String messageType, AdapterTransactionRequest transactionRequest) {
         String value = this.router.get(messageType);
-        sendToQueue(value, messageBody);
+        sendToQueue(value, transactionRequest);
     }
 
-    private void sendToQueue(String routingKey, String body) {
+    private void sendToQueue(String routingKey, AdapterTransactionRequest body) {
         logger.info("Sending message to queue");
 
         try {

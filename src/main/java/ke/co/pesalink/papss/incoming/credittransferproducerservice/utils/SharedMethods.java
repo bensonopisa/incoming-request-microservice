@@ -18,4 +18,27 @@ public class SharedMethods {
             throw new KeyStoreException(var7);
         }
     }
+
+    protected static Random random() {
+        return new Random();
+    }
+
+
+    public static String generateUniqueTransactionId() {
+        final Random random = random();
+        final String prefix = "AD";
+
+        StringBuilder stringBuilder = new StringBuilder().append(prefix);
+
+        final int transactionIdLength = 10;
+
+        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+
+        for (int i =0; i<= transactionIdLength; i++) {
+            stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+
+        return stringBuilder.toString();
+    }
 }
