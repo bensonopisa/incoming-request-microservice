@@ -10,6 +10,7 @@ package montran.rcon;
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -38,10 +39,7 @@ import java.util.Calendar;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "SettlementInfo")
-public class SettlementInfo
-    implements Serializable
-{
-
+public class SettlementInfo implements Serializable {
     private final static long serialVersionUID = -1L;
     @XmlAttribute(name = "seq")
     protected Long seq;
@@ -52,7 +50,7 @@ public class SettlementInfo
     @XmlAttribute(name = "instgAgtId")
     protected String instgAgtId;
     @XmlAttribute(name = "processTime")
-//    @XmlJavaTypeAdapter(Adapter1 .class)
+    @XmlJavaTypeAdapter(Adapter1.class)
     @XmlSchemaType(name = "dateTime")
     protected Calendar processTime;
 

@@ -10,6 +10,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
 //import org.w3._2001.xmlschema.Adapter1;
 
 import java.io.Serializable;
@@ -53,7 +54,7 @@ public class GroupHeader53
     @XmlElement(name = "MsgId", required = true)
     protected String msgId;
     @XmlElement(name = "CreDtTm", required = true, type = String.class)
-//    @XmlJavaTypeAdapter(Adapter1 .class)
+    @XmlJavaTypeAdapter(Adapter1.class)
     @XmlSchemaType(name = "dateTime")
     protected Calendar creDtTm;
     @XmlElement(name = "InstgAgt")

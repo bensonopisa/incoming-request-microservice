@@ -13,7 +13,7 @@ public class Constants {
 
     public static final String camt029 = "camt.029";
 
-    public static final String recon001 = "recon.001";
+    public static final String recon001 = "rcon.001";
 
     public static final String pacs002 = "pacs.002";
 }

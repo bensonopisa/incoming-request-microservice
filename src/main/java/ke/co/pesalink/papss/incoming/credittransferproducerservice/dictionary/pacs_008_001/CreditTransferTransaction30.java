@@ -10,6 +10,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
@@ -153,8 +154,9 @@ public class CreditTransferTransaction30
     protected SettlementDateTimeIndication1 sttlmTmIndctn;
     @XmlElement(name = "SttlmTmReq")
     protected SettlementTimeRequest2 sttlmTmReq;
-    @XmlElement(name = "AccptncDtTm", type = String.class)
+    @XmlElement(name = "AccptncDtTm")
     @XmlSchemaType(name = "dateTime")
+    @XmlJavaTypeAdapter(Adapter1.class)
     protected Calendar accptncDtTm;
     @XmlElement(name = "PoolgAdjstmntDt")
     @XmlSchemaType(name = "date")

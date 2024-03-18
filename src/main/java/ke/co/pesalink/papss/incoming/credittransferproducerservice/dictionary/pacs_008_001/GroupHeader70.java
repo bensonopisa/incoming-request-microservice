@@ -10,7 +10,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.XmlGregorianCalendarAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
@@ -61,16 +61,13 @@ import java.util.Calendar;
     "instgAgt",
     "instdAgt"
 })
-public class GroupHeader70
-    implements Serializable
-{
-
+public class GroupHeader70 implements Serializable {
     private final static long serialVersionUID = -1L;
     @XmlElement(name = "MsgId", required = true)
     protected String msgId;
-    @XmlElement(name = "CreDtTm", required = true, type = String.class)
+    @XmlElement(name = "CreDtTm", required = true)
     @XmlSchemaType(name = "dateTime")
-    @XmlJavaTypeAdapter(XmlGregorianCalendarAdapter.class)
+    @XmlJavaTypeAdapter(Adapter1.class)
     protected Calendar creDtTm;
     @XmlElement(name = "BtchBookg")
     protected Boolean btchBookg;

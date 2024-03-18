@@ -10,6 +10,7 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.p
 
 import jakarta.xml.bind.annotation.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.adapters.Adapter1;
 //import org.w3._2001.xmlschema.Adapter1;
 
 import java.io.Serializable;
@@ -92,7 +93,7 @@ public class PaymentTransaction63
     @XmlElement(name = "ChrgsInf")
     protected List<Charges2> chrgsInves;
     @XmlElement(name = "AccptncDtTm", type = String.class)
-//    @XmlJavaTypeAdapter(Adapter1 .class)
+    @XmlJavaTypeAdapter(Adapter1.class)
     @XmlSchemaType(name = "dateTime")
     protected Calendar accptncDtTm;
     @XmlElement(name = "AcctSvcrRef")
