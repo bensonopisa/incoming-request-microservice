@@ -21,6 +21,7 @@ import java.util.List;
 
 public class KeyValueSelector extends KeySelector {
     private final KeyStore keyStore;
+
     public KeyValueSelector(KeyStore keyStore) {
         this.keyStore = keyStore;
     }
@@ -49,10 +50,9 @@ public class KeyValueSelector extends KeySelector {
                 }
             }
         }
-
         // return null if no match was found
        try{
-           Key pkey = keyStore.getCertificate("ca ").getPublicKey();
+           Key pkey = keyStore.getCertificate("tesn").getPublicKey();
            return new SimpleKeySelectorResult(pkey);
        }catch (KeyStoreException ex) {
            throw new KeySelectorException(ex);
