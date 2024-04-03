@@ -71,7 +71,8 @@ deploy:
     - docker build -t $DOCKER_IMAGE --build-arg APP_VERSION=$PROJECT_VERSION .
     # Tag the image with the new version and push it to the registry
 #    - docker run 10.185.13.123 -d --name $app_name $DOCKER_IMAGE
-    - docker run -d --name $app_name --add-host=pm.test.papssnet.papss.com:${PAPSS_NAME_SERVER} $DOCKER_IMAGE
+    - docker rm -f $app_name
+    - docker run -d --memory 500m --name $app_name --add-host=pm.test.papssnet.papss.com:${PAPSS_NAME_SERVER} $DOCKER_IMAGE
 
     - docker tag $DOCKER_IMAGE $DOCKER_REGISTRY_IMAGE:$PROJECT_VERSION
     - docker rm -f $DOCKER_IMAGE
