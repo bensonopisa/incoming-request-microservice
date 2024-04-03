@@ -10,6 +10,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Map;
@@ -25,8 +26,14 @@ public class HttpClient {
         this.appConfig = appConfig;
     }
 
-    public ResponseEntity<String> makeHttpCall(URI url, HttpMethod method, @Nullable String body, Map<String, String> additionalHeaders) throws HttpException {
+    public ResponseEntity<String> makeHttpCall(String path, HttpMethod method, @Nullable String body, Map<String, String> additionalHeaders) throws HttpException {
         RequestEntity<?> requestEntity;
+
+        URI url = UriComponentsBuilder.fromHttpUrl(appConfig.getPapssIpsDns())
+                .port(appConfig.getPapssIpsPort())
+                .path(path)
+                .build().toUri();
+
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -59,8 +66,7 @@ public class HttpClient {
             return response;
 
         }catch (RestClientException rce) {
-            logger.error("An exception occured while initiating http request", rce);
-            throw new HttpException("Error initiating http request ",rce);
+            throw new HttpException("Error while invoking "+path+ " endpoint", rce);
         }
     }
 }

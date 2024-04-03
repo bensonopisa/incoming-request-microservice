@@ -31,11 +31,11 @@ import java.security.*;
 public class RestTemplateConfig {
 
     private final AppConfig appConfig;
-
-    SharedMethods sharedMethods  = new SharedMethods();
     @Bean
     public RestTemplate restTemplate() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException, UnrecoverableKeyException {
+
+        SharedMethods sharedMethods = new SharedMethods(appConfig);
 
         KeyStore keyStore = sharedMethods.loadKeystore(appConfig.getKeyStorePath().getInputStream(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
 
@@ -63,9 +63,7 @@ public class RestTemplateConfig {
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
 
         ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
-//        restTemplate.setInterceptors();
-        return restTemplate;
+        return new RestTemplate(requestFactory);
     }
 
 

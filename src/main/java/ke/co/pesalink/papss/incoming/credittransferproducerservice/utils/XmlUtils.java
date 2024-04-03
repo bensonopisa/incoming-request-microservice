@@ -47,52 +47,48 @@ public class XmlUtils {
         this.appConfig = appConfig;
     }
 
-    public boolean validateSignature(String xmlBody) throws ParserConfigurationException, SAXException, IOException, XMLSignatureException, MarshalException, KeyStoreException {
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newDefaultNSInstance();
-
-        DocumentBuilder documentBuilder  = documentBuilderFactory.newDocumentBuilder();
-
-        Document document = documentBuilder.parse(new InputSource(new StringReader(xmlBody)));
-
-        NodeList nodeList = document.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
-
-        if(nodeList.getLength() == 0) {
-            throw new IOException("Cannot find the signature element");
-        }
-
-        SharedMethods sharedMethods = new SharedMethods();
-
-        InputStream is = appConfig.getKeyStorePath().getInputStream();
-
-        KeyStore keyStore = sharedMethods.loadKeystore(is, appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
-
-        DOMValidateContext domValidateContext = new DOMValidateContext(new KeyValueSelector(keyStore), nodeList.item(0));
-
-        // validate the signature securely
-        domValidateContext.setProperty("org.jcp.xml.dsig.secureValidation", true);
-
-        XMLSignatureFactory factory = XMLSignatureFactory.getInstance("DOM");
-
-        XMLSignature signature = factory.unmarshalXMLSignature(domValidateContext);
-
-        boolean coreValidity = signature.validate(domValidateContext);
-
-        if (coreValidity) {
-            logger.info("Signature validation Successful");
-        }else {
-            boolean sv =
-                    signature.getSignatureValue().validate(domValidateContext);
-            logger.info("Signature validation status {}", sv);
-
-            Iterator<?> i = signature.getSignedInfo().getReferences().iterator();
-
-            for (int j=0; i.hasNext(); j++) {
-                boolean refValid = ((Reference) i.next()).validate(domValidateContext);
-                logger.info("ref[{}] validity status: {} " , j , refValid);
-            }
-        }
-        return coreValidity;
-    }
+//    public boolean validateSignature(String xmlBody) throws ParserConfigurationException, SAXException, IOException, XMLSignatureException, MarshalException, KeyStoreException {
+//
+//
+//        NodeList nodeList = document.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+//
+//        if(nodeList.getLength() == 0) {
+//            throw new IOException("Cannot find the signature element");
+//        }
+//
+//        SharedMethods sharedMethods = new SharedMethods();
+//
+//        InputStream is = appConfig.getKeyStorePath().getInputStream();
+//
+//        KeyStore keyStore = sharedMethods.loadKeystore(is, appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+//
+//        DOMValidateContext domValidateContext = new DOMValidateContext(new KeyValueSelector(keyStore), nodeList.item(0));
+//
+//        // validate the signature securely
+//        domValidateContext.setProperty("org.jcp.xml.dsig.secureValidation", true);
+//
+//        XMLSignatureFactory factory = XMLSignatureFactory.getInstance("DOM");
+//
+//        XMLSignature signature = factory.unmarshalXMLSignature(domValidateContext);
+//
+//        boolean coreValidity = signature.validate(domValidateContext);
+//
+//        if (coreValidity) {
+//            logger.info("Signature validation Successful");
+//        }else {
+//            boolean sv =
+//                    signature.getSignatureValue().validate(domValidateContext);
+//            logger.info("Signature validation status {}", sv);
+//
+//            Iterator<?> i = signature.getSignedInfo().getReferences().iterator();
+//
+//            for (int j=0; i.hasNext(); j++) {
+//                boolean refValid = ((Reference) i.next()).validate(domValidateContext);
+//                logger.info("ref[{}] validity status: {} " , j , refValid);
+//            }
+//        }
+//        return coreValidity;
+//    }
 
     /**
      * @apiNote   function used to marshall messages to appropriate type
@@ -135,8 +131,9 @@ public class XmlUtils {
 
             marshaller.marshal(data, doc);
 
-            return transform(doc);
-
+            String xmlString =  transform(doc);
+            logger.info("XML {}", xmlString);
+            return xmlString;
         }catch(JAXBException jaxbException) {
             throw new UnmarshallException("Error when unmarshalling the message", jaxbException);
         }

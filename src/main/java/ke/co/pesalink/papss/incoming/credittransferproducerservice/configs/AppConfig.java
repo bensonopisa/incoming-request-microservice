@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.convert.DurationUnit;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -59,8 +58,11 @@ public class AppConfig {
     private String papssIpsDns;
     @Value("${papss.ips.port}")
     private int papssIpsPort;
-    @Value("${papss.poll.messages.path}")
+    @Value("${papss.messages.polling.path}")
     private String ipsMessagePath;
+
+    @Value("${papss.message.acknowledgement.path}")
+    private String ipsAcknowldgementPath;
 
     @Value("${papss.security.keyStorePath}")
     private Resource keyStorePath;

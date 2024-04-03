@@ -45,10 +45,10 @@ public class MessageRoutingService {
     private void sendToQueue(String routingKey, AdapterTransactionRequest body) {
         logger.info("Sending message to queue");
 
-        try {
-            this.rabbitTemplate.convertAndSend(appConfig.getAdapterExchange(), routingKey, body);
-        }catch(AmqpException exception) {
-            logger.error("Failed to send message to queue: Reason {}", exception.getLocalizedMessage());
-        }
+//        try {
+//            this.rabbitTemplate.convertAndSend(appConfig.getAdapterExchange(), routingKey, body);
+//        }catch(AmqpException exception) {
+//            logger.error("Failed to send message to queue: Reason {}", exception.getLocalizedMessage());
+//        }
     }
 }
