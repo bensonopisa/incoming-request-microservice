@@ -3,43 +3,32 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.SignatureValidationException;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.apache.bcel.util.ClassPath;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.crypto.Data;
 import javax.xml.crypto.KeySelectorResult;
 import javax.xml.crypto.MarshalException;
-import javax.xml.crypto.OctetStreamData;
-import javax.xml.crypto.dsig.*;
-import javax.xml.crypto.dsig.dom.DOMSignContext;
+import javax.xml.crypto.dsig.Reference;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureException;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
 import javax.xml.crypto.dsig.dom.DOMValidateContext;
-import javax.xml.crypto.dsig.keyinfo.KeyInfo;
-import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
-import javax.xml.crypto.dsig.keyinfo.X509Data;
-import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
-import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.security.*;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Random;
 
 
 @Slf4j
@@ -89,81 +78,12 @@ public class SharedMethods {
         return stringBuilder.toString();
     }
 
-
-    private String generateSignature(Data data, X509Certificate signingCert, PrivateKey signingKey)
-            throws SignatureException {
-        XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
-
-        try {
-            List<Transform> trfs = new ArrayList();
-            trfs.add(fac.newTransform("http://www.w3.org/2000/09/xmldsig#enveloped-signature",
-                    (TransformParameterSpec) null));
-            trfs.add(fac.newCanonicalizationMethod("http://www.w3.org/2006/12/xml-c14n11",
-                    (C14NMethodParameterSpec) null));
-            Reference ref = fac.newReference("", fac.newDigestMethod("http://www.w3.org/2001/04/xmlenc#sha256", null),
-                    trfs, null, null);
-            String sigAlg = "";
-            if (signingKey instanceof ECPrivateKey) {
-                sigAlg = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256";
-            } else {
-                if (!(signingKey instanceof RSAPrivateKey)) {
-                    throw new IllegalArgumentException("Uknown PrivateKeyType: " + signingKey.getClass());
-                }
-
-                sigAlg = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
-            }
-
-            SignedInfo si = fac.newSignedInfo(
-                    fac.newCanonicalizationMethod("http://www.w3.org/TR/2001/REC-xml-c14n-20010315",
-                            (C14NMethodParameterSpec) null),
-                    fac.newSignatureMethod(sigAlg, null), Collections.singletonList(ref));
-            KeyInfoFactory kif = fac.getKeyInfoFactory();
-            List<Object> x509Content = new ArrayList();
-            x509Content.add(signingCert.getSubjectDN().getName());
-            x509Content
-                    .add(kif.newX509IssuerSerial(signingCert.getIssuerDN().getName(), signingCert.getSerialNumber()));
-            X509Data xd = kif.newX509Data(x509Content);
-            KeyInfo ki = kif.newKeyInfo(Collections.singletonList(xd));
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(true);
-            CanonicalizationMethod canonicalizationMethod = fac.newCanonicalizationMethod(
-                    "http://www.w3.org/TR/2001/REC-xml-c14n-20010315", (C14NMethodParameterSpec) null);
-            OctetStreamData transformedData = (OctetStreamData) canonicalizationMethod.transform(data, null);
-            Document doc = dbf.newDocumentBuilder().parse(transformedData.getOctetStream());
-            Node parentNode = null;
-            NodeList parentList = doc.getElementsByTagNameNS("*", "Sgntr");
-            // Node parentNode;
-            if (parentList.getLength() == 0) {
-                parentList = doc.getElementsByTagNameNS("*", "AppHdr");
-                parentNode = doc.createElementNS(parentList.item(0).getFirstChild().getNextSibling().getNamespaceURI(),
-                        "Sgntr");
-                parentNode = parentList.item(0).appendChild(parentNode);
-            } else {
-                parentNode = parentList.item(0);
-            }
-
-            DOMSignContext dsc = new DOMSignContext(signingKey, parentNode);
-            XMLSignature signature = fac.newXMLSignature(si, ki);
-            signature.sign(dsc);
-            StringWriter swr = new StringWriter();
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer trans = tf.newTransformer();
-            trans.transform(new DOMSource(doc), new StreamResult(swr));
-            return swr.toString();
-        } catch (Exception var24) {
-            throw new SignatureException("Error signing data", var24);
-        }
-    }
-
-
-    public boolean validateSignature(String xml) throws SignatureValidationException{
-        Document xmlContent = buildDocument(xml);
-
-        if (xmlContent == null) {
+    private void validateSignature(Document document) throws SignatureValidationException{
+        if (document == null) {
             throw new SignatureValidationException("Could not marshall payload to a DOM object");
         }
 
-        NodeList nl = xmlContent.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+        NodeList nl = document.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
         if (nl.getLength() == 0) {
             throw new SignatureValidationException("Cannot find Signature element");
         } else {
@@ -236,8 +156,23 @@ public class SharedMethods {
                 log.error("Failed validating XML signature", var12);
             }
 
-            return coreValidity;
+            if (!coreValidity) {
+                throw new SignatureValidationException("Signature validation failed");
+            }
         }
+    }
+
+    public boolean validateSignature(String xml){
+        boolean isValid = false;
+        Document document = buildDocument(xml);
+
+        try {
+            validateSignature(document);
+            isValid = true;
+        }catch(SignatureValidationException e) {
+            log.error("Signature validation failed ", e);
+        }
+        return isValid;
     }
 
     protected boolean validateRevocation(X509Certificate cert) {
@@ -250,17 +185,18 @@ public class SharedMethods {
         SimpleKeySelectorResult(X509Certificate cert) {
             this.cert = cert;
         }
+
         public X509Certificate getCert() {
             return this.cert;
         }
+
         public Key getKey() {
             return this.cert.getPublicKey();
         }
     }
 
     protected XMLSignatureFactory getXMLSignatureFactory() {
-        XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
-        return fac;
+        return XMLSignatureFactory.getInstance("DOM");
     }
 
     protected org.w3c.dom.Document buildDocument(String xml)  {

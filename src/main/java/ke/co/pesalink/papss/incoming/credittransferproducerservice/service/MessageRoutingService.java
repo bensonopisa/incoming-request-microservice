@@ -8,6 +8,7 @@ import ke.co.pesalink.papss.incoming.credittransferproducerservice.dto.Transacti
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.ProcessingFailedException;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.Constants;
 import lombok.RequiredArgsConstructor;
+import montran.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
@@ -41,7 +42,8 @@ public class MessageRoutingService {
         router.put(Constants.recon001, appConfig.getCreditTransferRoutingKey());
     }
 
-    public void enQueue(String messageType, String messageBody) {
+    public void enQueue(String messageType, Message messageBody) {
+
         TransactionRequest transactionRequest = buildTransactionRequest(messageBody);
         // get the routing key if it exists and route the request to the appropriate queue
 
@@ -60,10 +62,10 @@ public class MessageRoutingService {
         }
     }
 
-    private TransactionRequest buildTransactionRequest(Object object) {
+    private TransactionRequest buildTransactionRequest(Message transaction) {
         String bodyAsString;
         try {
-            bodyAsString = objectMapper.writeValueAsString(object);
+            bodyAsString = objectMapper.writeValueAsString(transaction);
         } catch (JsonProcessingException e) {
             throw new ProcessingFailedException("Failed to serialize the body", e);
         }

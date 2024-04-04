@@ -63,51 +63,30 @@ import ke.co.pesalink.papss.incoming.credittransferproducerservice.dictionary.pa
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
         "appHdr",
-        "cdtrPmtActvtnReqStsRpt",
-        "cdtrPmtActvtnReq",
         "idVrfctnRpt",
         "idVrfctnReq",
-        "idModAdvc",
         "fiToFIPmtStsReq",
         "fiToFICstmrCdtTrf",
-        "pmtRtr",
         "fiToFIPmtStsRpt",
-        "fiToFIPmtCxlReq",
-        "rsltnOfInvstgtn",
-        "reqToModfyPmt"
 })
 @XmlRootElement(name = "Message")
-public class Message
-        implements Serializable
-{
-
+public class Message implements Serializable {
     private final static long serialVersionUID = -1L;
     @XmlElement(name = "AppHdr", required = true)
     protected AppHdr appHdr;
-    @XmlElement(name = "CdtrPmtActvtnReqStsRpt")
-    protected CreditorPaymentActivationRequestStatusReportV07 cdtrPmtActvtnReqStsRpt;
-    @XmlElement(name = "CdtrPmtActvtnReq")
-    protected CreditorPaymentActivationRequestV07 cdtrPmtActvtnReq;
     @XmlElement(name = "IdVrfctnRpt")
     protected IdentificationVerificationReportV02 idVrfctnRpt;
     @XmlElement(name = "IdVrfctnReq")
     protected IdentificationVerificationRequestV02 idVrfctnReq;
-    @XmlElement(name = "IdModAdvc")
-    protected IdentificationModificationAdviceV02 idModAdvc;
+
     @XmlElement(name = "FIToFIPmtStsReq")
     protected FIToFIPaymentStatusRequestV02 fiToFIPmtStsReq;
     @XmlElement(name = "FIToFICstmrCdtTrf")
     protected FIToFICustomerCreditTransferV07 fiToFICstmrCdtTrf;
-    @XmlElement(name = "PmtRtr")
-    protected PaymentReturnV07 pmtRtr;
+
     @XmlElement(name = "FIToFIPmtStsRpt")
     protected FIToFIPaymentStatusReportV07 fiToFIPmtStsRpt;
-    @XmlElement(name = "FIToFIPmtCxlReq")
-    protected FIToFIPaymentCancellationRequestV06 fiToFIPmtCxlReq;
-    @XmlElement(name = "RsltnOfInvstgtn")
-    protected ResolutionOfInvestigationV07 rsltnOfInvstgtn;
-    @XmlElement(name = "ReqToModfyPmt")
-    protected RequestToModifyPaymentV03 reqToModfyPmt;
+
 
     /**
      * Gets the value of the appHdr property.
@@ -131,54 +110,6 @@ public class Message
      */
     public void setAppHdr(AppHdr value) {
         this.appHdr = value;
-    }
-
-    /**
-     * Gets the value of the cdtrPmtActvtnReqStsRpt property.
-     *
-     * @return
-     *     possible object is
-     *     {@link CreditorPaymentActivationRequestStatusReportV07 }
-     *
-     */
-    public CreditorPaymentActivationRequestStatusReportV07 getCdtrPmtActvtnReqStsRpt() {
-        return cdtrPmtActvtnReqStsRpt;
-    }
-
-    /**
-     * Sets the value of the cdtrPmtActvtnReqStsRpt property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link CreditorPaymentActivationRequestStatusReportV07 }
-     *
-     */
-    public void setCdtrPmtActvtnReqStsRpt(CreditorPaymentActivationRequestStatusReportV07 value) {
-        this.cdtrPmtActvtnReqStsRpt = value;
-    }
-
-    /**
-     * Gets the value of the cdtrPmtActvtnReq property.
-     *
-     * @return
-     *     possible object is
-     *     {@link CreditorPaymentActivationRequestV07 }
-     *
-     */
-    public CreditorPaymentActivationRequestV07 getCdtrPmtActvtnReq() {
-        return cdtrPmtActvtnReq;
-    }
-
-    /**
-     * Sets the value of the cdtrPmtActvtnReq property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link CreditorPaymentActivationRequestV07 }
-     *
-     */
-    public void setCdtrPmtActvtnReq(CreditorPaymentActivationRequestV07 value) {
-        this.cdtrPmtActvtnReq = value;
     }
 
     /**
@@ -230,30 +161,6 @@ public class Message
     }
 
     /**
-     * Gets the value of the idModAdvc property.
-     *
-     * @return
-     *     possible object is
-     *     {@link IdentificationModificationAdviceV02 }
-     *
-     */
-    public IdentificationModificationAdviceV02 getIdModAdvc() {
-        return idModAdvc;
-    }
-
-    /**
-     * Sets the value of the idModAdvc property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link IdentificationModificationAdviceV02 }
-     *
-     */
-    public void setIdModAdvc(IdentificationModificationAdviceV02 value) {
-        this.idModAdvc = value;
-    }
-
-    /**
      * Gets the value of the fiToFIPmtStsReq property.
      *
      * @return
@@ -302,30 +209,6 @@ public class Message
     }
 
     /**
-     * Gets the value of the pmtRtr property.
-     *
-     * @return
-     *     possible object is
-     *     {@link PaymentReturnV07 }
-     *
-     */
-    public PaymentReturnV07 getPmtRtr() {
-        return pmtRtr;
-    }
-
-    /**
-     * Sets the value of the pmtRtr property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link PaymentReturnV07 }
-     *
-     */
-    public void setPmtRtr(PaymentReturnV07 value) {
-        this.pmtRtr = value;
-    }
-
-    /**
      * Gets the value of the fiToFIPmtStsRpt property.
      *
      * @return
@@ -348,77 +231,4 @@ public class Message
     public void setFIToFIPmtStsRpt(FIToFIPaymentStatusReportV07 value) {
         this.fiToFIPmtStsRpt = value;
     }
-
-    /**
-     * Gets the value of the fiToFIPmtCxlReq property.
-     *
-     * @return
-     *     possible object is
-     *     {@link FIToFIPaymentCancellationRequestV06 }
-     *
-     */
-    public FIToFIPaymentCancellationRequestV06 getFIToFIPmtCxlReq() {
-        return fiToFIPmtCxlReq;
-    }
-
-    /**
-     * Sets the value of the fiToFIPmtCxlReq property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link FIToFIPaymentCancellationRequestV06 }
-     *
-     */
-    public void setFIToFIPmtCxlReq(FIToFIPaymentCancellationRequestV06 value) {
-        this.fiToFIPmtCxlReq = value;
-    }
-
-    /**
-     * Gets the value of the rsltnOfInvstgtn property.
-     *
-     * @return
-     *     possible object is
-     *     {@link ResolutionOfInvestigationV07 }
-     *
-     */
-    public ResolutionOfInvestigationV07 getRsltnOfInvstgtn() {
-        return rsltnOfInvstgtn;
-    }
-
-    /**
-     * Sets the value of the rsltnOfInvstgtn property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link ResolutionOfInvestigationV07 }
-     *
-     */
-    public void setRsltnOfInvstgtn(ResolutionOfInvestigationV07 value) {
-        this.rsltnOfInvstgtn = value;
-    }
-
-    /**
-     * Gets the value of the reqToModfyPmt property.
-     *
-     * @return
-     *     possible object is
-     *     {@link RequestToModifyPaymentV03 }
-     *
-     */
-    public RequestToModifyPaymentV03 getReqToModfyPmt() {
-        return reqToModfyPmt;
-    }
-
-    /**
-     * Sets the value of the reqToModfyPmt property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link RequestToModifyPaymentV03 }
-     *
-     */
-    public void setReqToModfyPmt(RequestToModifyPaymentV03 value) {
-        this.reqToModfyPmt = value;
-    }
-
 }

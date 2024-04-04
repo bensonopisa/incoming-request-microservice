@@ -1,9 +1,6 @@
 package ke.co.pesalink.papss.incoming.credittransferproducerservice.service;
 
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.ProcessingFailedException;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.SignatureValidationException;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.UnmarshallException;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.Constants;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.HttpClient;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.SharedMethods;
@@ -36,6 +33,8 @@ public class MessagePollerService implements MessagePoller{
 
     private final SharedMethods sharedMethods;
 
+    private final PersistenceService persistenceService;
+
     @Override
     public void run() {
         ResponseEntity<String> response;
@@ -50,6 +49,7 @@ public class MessagePollerService implements MessagePoller{
     }
 
     void process(ResponseEntity<String> response) {
+
         String message = response.getBody();
 
         HttpHeaders responseHeaders = response.getHeaders();
@@ -88,45 +88,35 @@ public class MessagePollerService implements MessagePoller{
             log.info("{} messages remaining to be processed", remainingMessages);
         }
 
+        boolean signatureValid = sharedMethods.validateSignature(message);
 
-//        if (messageType != null) {
-//            if (messageType.equals(Constants.pacs008)) {
-//                // send pac002 ack
-//                replyToPayment(message);
-//            }else {
-//                // confirm message
-//                confirmMessage(messageSequenceNumber);
-//            }
-//        }
-
-        boolean signatureValid = validateSignature(message);
-
-        log.info("Signature valid {}", signatureValid);
-
-
-        if (messageType.equals(Constants.recon001) ) {
-            Recon recon  = (Recon) xmlUtils.unmarshall(message, Recon.class);
-
-            log.info("Recon {}", recon);
-
-            confirmMessage(messageSequenceNumber);
+        if (!signatureValid) {
+            log.error("Request processing failed. Signature is invalid!");
             return;
         }
 
-        if(messageType.equals(Constants.pacs002)) {
-            confirmMessage(messageSequenceNumber);
-        }
+        Message unmarshalled = (Message) xmlUtils.unmarshall(message, Message.class);
+        // save the request to the database
+        persistenceService.saveTransaction(unmarshalled);
 
-        messageRoutingService.enQueue(messageType,message);
-    }
+        if (messageType != null) {
+            if (messageType.equals(Constants.recon001)) {
+                Recon recon  = (Recon) xmlUtils.unmarshall(message, Recon.class);
 
-    private boolean validateSignature(String xml){
-        try {
-            return sharedMethods.validateSignature(xml);
-        }catch(SignatureValidationException e) {
-            log.error("Signature validation failed ", e);
-            return false;
+                log.info("{}", recon);
+                confirmMessage(messageSequenceNumber);
+                return;
+            }
+
+            if (messageType.equals(Constants.pacs008)) {
+                // send pac002 ack
+                replyToPayment(message);
+            }else {
+                // confirm message
+                confirmMessage(messageSequenceNumber);
+            }
         }
+        messageRoutingService.enQueue(messageType, unmarshalled);
     }
 
     private void confirmMessage(String sequenceNumber) {
@@ -151,7 +141,6 @@ public class MessagePollerService implements MessagePoller{
         Map<String, String> templateData = new HashMap<>();
 
 //        templateData.put("fr_bicfi", message.getFIToFICstmrCdtTrf().getGrpHdr().)
-
         return templateData;
     }
 }
