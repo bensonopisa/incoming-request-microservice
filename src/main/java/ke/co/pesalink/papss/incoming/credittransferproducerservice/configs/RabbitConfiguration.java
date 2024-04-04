@@ -33,6 +33,7 @@ public class RabbitConfiguration {
     RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter);
+
         return rabbitTemplate;
     }
 

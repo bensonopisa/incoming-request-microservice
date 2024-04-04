@@ -44,7 +44,6 @@ import java.util.*;
 
 @Slf4j
 @Component
-
 public class SharedMethods {
     private final AppConfig appConfig;
 
