@@ -2,7 +2,6 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 
 
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
-import org.apache.hc.core5.http.HttpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -13,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -26,7 +26,7 @@ public class HttpClient {
         this.appConfig = appConfig;
     }
 
-    public ResponseEntity<String> makeHttpCall(String path, HttpMethod method, @Nullable String body, Map<String, String> additionalHeaders) throws HttpException {
+    public ResponseEntity<String> makeHttpCall(String path, HttpMethod method, @Nullable String body, Map<String, String> additionalHeaders) throws RestClientException {
         RequestEntity<?> requestEntity;
 
         URI url = UriComponentsBuilder.fromHttpUrl(appConfig.getPapssIpsDns())
@@ -59,14 +59,13 @@ public class HttpClient {
 
         logger.info("Sending request to {} ", Map.of("url",url));
 
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(requestEntity, String.class);
-            logger.info("Received response {}.", response);
+        ResponseEntity<String> response = restTemplate.exchange(requestEntity, String.class);
+        logger.info("Received response {}.", response);
 
-            return response;
+        return response;
+    }
 
-        }catch (RestClientException rce) {
-            throw new HttpException("Error while invoking "+path+ " endpoint", rce);
-        }
+    public ResponseEntity<String> makeHttpCall(String path, HttpMethod method) {
+        return makeHttpCall(path, method, null, new HashMap<>());
     }
 }

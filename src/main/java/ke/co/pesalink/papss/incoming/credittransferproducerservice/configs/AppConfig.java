@@ -80,5 +80,14 @@ public class AppConfig {
 
     @Value("${incoming.credit-transfer.request.type}")
     private String creditTransferType;
+
+    @Value("${papss.socket.connect.timeout}")
+    @DurationUnit(ChronoUnit.SECONDS)
+    private Duration connectionTimeout;
+
+
+    @Value("${papss.socket.read.timeout}")
+    @DurationUnit(ChronoUnit.SECONDS)
+    private Duration readTimeout;
 }
 

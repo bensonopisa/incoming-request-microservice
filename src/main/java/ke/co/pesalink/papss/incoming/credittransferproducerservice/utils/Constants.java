@@ -16,4 +16,6 @@ public class Constants {
     public static final String recon001 = "rcon.001";
 
     public static final String pacs002 = "pacs.002";
+
+    public static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 }

@@ -2,57 +2,44 @@ package ke.co.pesalink.papss.incoming.credittransferproducerservice.utils;
 
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.exceptions.SignatureValidationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.crypto.KeySelectorResult;
-import javax.xml.crypto.MarshalException;
-import javax.xml.crypto.dsig.Reference;
-import javax.xml.crypto.dsig.XMLSignature;
-import javax.xml.crypto.dsig.XMLSignatureException;
-import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.*;
+import javax.xml.crypto.dsig.*;
 import javax.xml.crypto.dsig.dom.DOMValidateContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.crypto.dsig.keyinfo.X509Data;
+import javax.xml.crypto.dsig.keyinfo.X509IssuerSerial;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Random;
+import java.util.*;
 
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class SharedMethods {
     private final AppConfig appConfig;
 
-    public SharedMethods(AppConfig appConfig) {
-        this.appConfig = appConfig;
-    }
-
-
-    public synchronized KeyStore loadKeystore(InputStream is, char[] password, String keystoreType) throws KeyStoreException {
-        try {
-            KeyStore keyStore = KeyStore.getInstance(keystoreType);
-
-            keyStore.load(is, password);
-
-            return keyStore;
-
-        } catch (Exception var7) {
-            throw new KeyStoreException(var7);
-        }
-    }
+    private final HttpClient httpClient;
 
     protected static Random random() {
         return new Random();
@@ -68,7 +55,7 @@ public class SharedMethods {
 
         final int transactionIdLength = 10;
 
-        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        final String CHARACTERS = Constants.CHARACTERS;
 
 
         for (int i =0; i<= transactionIdLength; i++) {
@@ -78,138 +65,179 @@ public class SharedMethods {
         return stringBuilder.toString();
     }
 
-    private void validateSignature(Document document) throws SignatureValidationException{
-        if (document == null) {
-            throw new SignatureValidationException("Could not marshall payload to a DOM object");
+    @SuppressWarnings({"unused" })
+    public void  validateSignature(String xml) throws ParserConfigurationException, IOException, SAXException, MarshalException, XMLSignatureException, KeyStoreException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        boolean coreValidity;
+
+        dbf.setNamespaceAware(true);
+
+        DocumentBuilder db = dbf.newDocumentBuilder();
+
+        Document document = db.parse(new InputSource(new StringReader(xml)));
+
+        NodeList nodeList = document.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+
+        if (nodeList.getLength() == 0) {
+            throw new SignatureValidationException("Cannot find signature element");
         }
 
-        NodeList nl = document.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
-        if (nl.getLength() == 0) {
-            throw new SignatureValidationException("Cannot find Signature element");
-        } else {
-            XMLSignatureFactory fac = this.getXMLSignatureFactory();
+        List<X509Certificate> keyStoreCerts = certificateList();
 
-            KeyStore keyStore;
+        DOMValidateContext context = new DOMValidateContext(new KeySelector() {
+            @Override
+            public KeySelectorResult select(KeyInfo keyInfo, Purpose purpose, AlgorithmMethod method, XMLCryptoContext context) throws KeySelectorException {
+                if (keyInfo == null ){
+                    throw new KeySelectorException("digital signature keyinfo is null");
+                }
 
-            try{
-               keyStore = loadKeystore(appConfig.getKeyStorePath().getInputStream(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
-            }catch(IOException | KeyStoreException e) {
-                throw new SignatureValidationException("Keystore failed to load");
-            }
+                SignatureMethod sm = (SignatureMethod) method;
 
+                List<?> infoContent = keyInfo.getContent();
 
-            if(keyStore == null) {
-                throw new SignatureValidationException("Keystore could not be loaded");
-            }
+                String sub = null;
+                X509IssuerSerial issuerSerial = null;
 
-            DOMValidateContext valContext = new DOMValidateContext(
-                    new KeyValueSelector(keyStore), nl.item(0));
+                X509Certificate matchedCert = null;
 
-            boolean coreValidity = false;
+                for(Object o : infoContent) {
+                    if (o instanceof X509Data x509Data) {
+                        List<?> elements = x509Data.getContent();
 
-            try {
-                XMLSignature signature = fac.unmarshalXMLSignature(valContext);
-                boolean fullyProtected = false;
-
-                Iterator var8 = signature.getSignedInfo().getReferences().iterator();
-
-                label49: {
-                    Reference ref;
-                    do {
-                        if (!var8.hasNext()) {
-                            break label49;
+                        for (Object element : elements) {
+                            if (element instanceof String s) {
+                                sub = s;
+                            }
+                            if (element instanceof X509IssuerSerial x509IssuerSerial) {
+                                issuerSerial = x509IssuerSerial;
+                            }
                         }
-
-                        Object o = var8.next();
-                        ref = (Reference) o;
-                    } while (ref.getURI() != null && !ref.getURI().isEmpty());
-
-                    fullyProtected = true;
-                }
-
-                if (!fullyProtected) {
-                    throw new SignatureValidationException("The signature was not protecting the whole message");
-                }
-
-                coreValidity = signature.validate(valContext);
-                if (!coreValidity) {
-                    log.warn("Signature failed core validation");
-                    boolean sv = signature.getSignatureValue().validate(valContext);
-                    log.warn("signature validation status: " + sv);
-                    Iterator<?> i = signature.getSignedInfo().getReferences().iterator();
-
-                    for (int j = 0; i.hasNext(); ++j) {
-                        boolean refValid = ((Reference) i.next()).validate(valContext);
-                        log.warn("ref[" + j + "] validity status: " + refValid);
-                    }
-                } else {
-                    X509Certificate siginingCert = ((SimpleKeySelectorResult) signature
-                            .getKeySelectorResult()).getCert();
-                    Date now = new Date();
-                    if (siginingCert.getNotAfter().before(now) || siginingCert.getNotBefore().after(now)
-                            || !this.validateRevocation(siginingCert)) {
-                        throw new SignatureValidationException(
-                                "Signature validation failed. Certificate not valid anymore/yet");
                     }
                 }
-            } catch (MarshalException | XMLSignatureException var12) {
-                log.error("Failed validating XML signature", var12);
-            }
 
-            if (!coreValidity) {
-                throw new SignatureValidationException("Signature validation failed");
+                if (issuerSerial != null && StringUtils.isNotEmpty(sub)) {
+                    for (X509Certificate cert : keyStoreCerts) {
+                        if (cert.getSerialNumber().equals(issuerSerial.getSerialNumber())
+                                && cert.getIssuerX500Principal().getName().equals(issuerSerial.getIssuerName())
+                                && !cert.getSubjectX500Principal().getName().isEmpty() && cert.getSubjectX500Principal().getName().equals(sub)) {
+                            matchedCert = cert;
+                        }
+                    }
+                }
+
+                if (matchedCert == null) {
+                    throw new KeySelectorException("Cannot retrieve certificate using x509Data");
+                }
+                // check for certificate validity
+
+                if (algEquals(sm.getAlgorithm(), matchedCert.getPublicKey().getAlgorithm())) {
+                    return new SimpleKeySelectorResult(matchedCert);
+                }
+
+                throw new KeySelectorException("No Key element found");
+
+            }
+        }, nodeList.item(0));
+
+
+        XMLSignatureFactory xmlSignatureFactory = XMLSignatureFactory.getInstance("DOM");
+
+        XMLSignature signature = xmlSignatureFactory.unmarshalXMLSignature(context);
+
+
+        coreValidity = signature.validate(context);
+
+
+        if (!coreValidity) {
+            log.error("Signature validation failed");
+            boolean sv = signature.getSignatureValue().validate(context);
+
+            log.error("Signature validation status: {}", sv);
+
+            Iterator<Reference> iterator = signature.getSignedInfo().getReferences().iterator();
+
+            for (int j = 0; iterator.hasNext(); j++) {
+                Reference ref = iterator.next();
+                log.info("[Ref {} validity status ==> {}", j, ref.validate(context));
             }
         }
-    }
 
-    public boolean validateSignature(String xml){
-        boolean isValid = false;
-        Document document = buildDocument(xml);
-
-        try {
-            validateSignature(document);
-            isValid = true;
-        }catch(SignatureValidationException e) {
-            log.error("Signature validation failed ", e);
+        if (!coreValidity) {
+            throw new XMLSignatureException("Signature validation failed.");
         }
-        return isValid;
-    }
-
-    protected boolean validateRevocation(X509Certificate cert) {
-        return true;
     }
 
     private static class SimpleKeySelectorResult implements KeySelectorResult {
-        private final X509Certificate cert;
+        private final X509Certificate certificate;
 
-        SimpleKeySelectorResult(X509Certificate cert) {
-            this.cert = cert;
+        SimpleKeySelectorResult(X509Certificate certificate) {
+            this.certificate = certificate;
         }
 
-        public X509Certificate getCert() {
-            return this.cert;
-        }
-
-        public Key getKey() {
-            return this.cert.getPublicKey();
+        public Key getKey( ) {
+            return certificate.getPublicKey();
         }
     }
 
-    protected XMLSignatureFactory getXMLSignatureFactory() {
-        return XMLSignatureFactory.getInstance("DOM");
+
+    private boolean algEquals(String algURI, String algName) {
+        if (algName.equalsIgnoreCase("DSA") && algURI.equalsIgnoreCase("http://www.w3.org/2000/09/xmldsig#dsa-sha1")) {
+            return true;
+        }else if (algName.equalsIgnoreCase("RSA") && algURI.equalsIgnoreCase("http://www.w3.org/2000/09/xmldsig#rsa-sha1")) {
+            return true;
+        }
+        else if (algName.equalsIgnoreCase("EC") && algURI.equalsIgnoreCase("http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256")) {
+            return true;
+        }
+        else {
+            return algName.equalsIgnoreCase("RSA") && algURI.equalsIgnoreCase("http://www.w3.org/2001/04/xmldsig-more#rsa-sha256");
+        }
+    }
+    private List<X509Certificate> certificateList() throws KeyStoreException {
+       KeyStore keyStore = getKeyStore();
+
+       List<X509Certificate> certs = new ArrayList<>();
+
+       Enumeration<String> aliases = keyStore.aliases();
+
+       while(aliases.hasMoreElements()) {
+           String alias = aliases.nextElement();
+
+           X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
+           certs.add(certificate);
+       }
+
+       return certs;
     }
 
-    protected org.w3c.dom.Document buildDocument(String xml)  {
+
+    protected KeyStore getKeyStore() {
+        KeyStore keystore = null;
         try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newDefaultNSInstance();
-
-            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-
-            return documentBuilder.parse(new InputSource(new StringReader(xml)));
-
-        }catch(ParserConfigurationException | IOException | SAXException e) {
-            log.error("Failed to extract document");
-            return null;
+            keystore = KeyStoreUtils.loadKeyStore(appConfig.getKeyStoreProvider(),appConfig.getKeyStorePath(), appConfig.getKeyStorePassword().toCharArray(), appConfig.getKeyStoreType());
+        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+            log.error("Error loading keystore {}", e.getMessage());
         }
+        return keystore;
+    }
+
+    public ResponseEntity<String> makeApiRequest() {
+        ResponseEntity<String> response = null;
+        try {
+            // passing new hashmap since all the
+            response = httpClient.makeHttpCall(appConfig.getIpsMessagePath(), HttpMethod.GET);
+
+        }catch(RestClientException rce) {
+            final String error = "Error occurred while making api call.";
+
+            if (rce instanceof ResourceAccessException e) {
+                log.error(error + "{}", e.getLocalizedMessage());
+            }
+            if (rce.getCause() instanceof RestClientResponseException e) {
+                log.error(error + "Status {}. Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            }
+        }
+
+        return response;
     }
 }

@@ -1,48 +1,34 @@
 package ke.co.pesalink.papss.incoming.credittransferproducerservice.service;
 
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.configs.AppConfig;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.Constants;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.HttpClient;
 import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.SharedMethods;
-import ke.co.pesalink.papss.incoming.credittransferproducerservice.utils.XmlUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import montran.message.Message;
-import montran.rcon.Recon;
-import org.apache.hc.core5.http.HttpException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.xml.sax.SAXException;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.xml.crypto.MarshalException;
+import javax.xml.crypto.dsig.XMLSignatureException;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.security.KeyStoreException;
 import java.util.Optional;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class MessagePollerService implements MessagePoller{
-    private final AppConfig appConfig;
-
-    private final HttpClient httpClient;
-
-    private final MessageRoutingService messageRoutingService;
-
-    private final XmlUtils xmlUtils;
-
     private final SharedMethods sharedMethods;
-
-    private final PersistenceService persistenceService;
 
     @Override
     public void run() {
-        ResponseEntity<String> response;
-        try {
-            // I use an empty map since no additional  headers are required
-           response = httpClient.makeHttpCall(appConfig.getIpsMessagePath(), HttpMethod.GET, null, new HashMap<>());
-        }catch(HttpException exception) {
-            log.error(exception.getMessage());
+        ResponseEntity<String> response = sharedMethods.makeApiRequest();
+
+        if (response == null) {
+            log.error("Failed to make api call. Trying again in 5 seconds");
             return;
         }
         process(response);
@@ -54,94 +40,43 @@ public class MessagePollerService implements MessagePoller{
 
         HttpHeaders responseHeaders = response.getHeaders();
 
-        String messageSequenceNumber = null;
-        String messageType =  Constants.pacs008;
-        String remainingMessages = null;
+        Optional<String> messageSequenceNumber = Optional.ofNullable(responseHeaders.getFirst("X-PAPSSRTP-MessageSeq"));
+        Optional<String> messageType = Optional.ofNullable(responseHeaders.getFirst("X-PAPSSRTP-MessageType"));
+        Optional<String> possibleDuplicate = Optional.ofNullable(responseHeaders.getFirst("X-PAPSSRTP-PossibleDuplicate"));
+        Optional<String> remainingMessages = Optional.ofNullable(responseHeaders.getFirst("X-PAPSSRTP-RemainingOutputs"));
+        Optional<String> pollingStatus = Optional.ofNullable(responseHeaders.getFirst("X-PAPSSRTP-ReqSts"));
 
-        boolean possibleDuplicate;
-
-        Optional<String> pollingRequestStatus = Optional.ofNullable(responseHeaders.getFirst("X-PAPSSRTP-ReqSts"));
-
-        if (pollingRequestStatus.isPresent() && pollingRequestStatus.get().equals("EMPTY")) {
-            log.info("No message found..polling again in {} seconds", appConfig.getPollerInterval().getSeconds());
+        if (pollingStatus.isPresent() && StringUtils.equals(pollingStatus.get(), "EMPTY")) {
+            log.info("No pending messages found...polling again in 5 seconds");
             return;
         }
 
-        if (responseHeaders.containsKey("X-PAPSSRTP-MessageSeq")) {
-            messageSequenceNumber = responseHeaders.getFirst("X-PAPSSRTP-MessageSeq");
-            log.info("Message sequence number: {}", messageSequenceNumber);
-        }
+        messageSequenceNumber.ifPresent( sequence  -> log.info("Message sequence number {}", sequence));
+        possibleDuplicate.ifPresent( duplicate -> log.info("Possible duplicate {}", duplicate));
+        messageType.ifPresent( type -> log.info("Message type {}", type));
+        remainingMessages.ifPresent( messages -> log.info("Messages pending {}", messages));
 
-        if (responseHeaders.containsKey("X-PAPSSRTP-MessageType")) {
-            messageType = responseHeaders.getFirst("X-PAPSSRTP-MessageType");
-            log.info("Message type: {}", messageType);
-        }
-
-        if (responseHeaders.containsKey(("X-PAPSSRTP-PossibleDuplicate"))) {
-            possibleDuplicate = Boolean.parseBoolean(responseHeaders.getFirst("X-PAPSSRTP-PossibleDuplicate"));
-            log.warn("Possible duplicate: {}", possibleDuplicate);
-        }
-
-        if (responseHeaders.containsKey(("X-PAPSSRTP-RemainingOutputs"))) {
-            remainingMessages = responseHeaders.getFirst("X-PAPSSRTP-RemainingOutputs");
-
-            log.info("{} messages remaining to be processed", remainingMessages);
-        }
-
-        boolean signatureValid = sharedMethods.validateSignature(message);
-
-        if (!signatureValid) {
-            log.error("Request processing failed. Signature is invalid!");
-            return;
-        }
-
-        Message unmarshalled = (Message) xmlUtils.unmarshall(message, Message.class);
-        // save the request to the database
-        persistenceService.saveTransaction(unmarshalled);
-
-        if (messageType != null) {
-            if (messageType.equals(Constants.recon001)) {
-                Recon recon  = (Recon) xmlUtils.unmarshall(message, Recon.class);
-
-                log.info("{}", recon);
-                confirmMessage(messageSequenceNumber);
-                return;
-            }
-
-            if (messageType.equals(Constants.pacs008)) {
-                // send pac002 ack
-                replyToPayment(message);
-            }else {
-                // confirm message
-                confirmMessage(messageSequenceNumber);
-            }
-        }
-        messageRoutingService.enQueue(messageType, unmarshalled);
-    }
-
-    private void confirmMessage(String sequenceNumber) {
-        log.info("Sending confirmation request to papss for message sequence {}", sequenceNumber);
-
-        Map<String, String> additionalHeaders = Map.of("X-PAPSSRTP-MessageSeq", sequenceNumber);
 
         try {
-            httpClient.makeHttpCall(appConfig.getIpsAcknowldgementPath(), HttpMethod.POST, null, additionalHeaders);
-        }catch(HttpException e) {
-            log.error("Exception encountered",e);
+            sharedMethods.validateSignature(message);
+        } catch (MarshalException | ParserConfigurationException | IOException | KeyStoreException |
+                 XMLSignatureException | SAXException e) {
+            log.error(e.getMessage());
         }
-        log.info("Message successfully confirmed...");
+
+        String type = messageType.orElseThrow(() -> new RuntimeException("Message type is null."));
+
+        if (StringUtils.equals(type, Constants.pacs008)) {
+            // replyToPayment with a accepted status
+        }else {
+            // confirm receipt of messages for papss rtp to remove it from their internal queues
+        }
+
+        // proceed with processing
     }
 
-    public void replyToPayment(String body) {
-        Message message = (Message) xmlUtils.unmarshall(body, Message.class);
-        Map<String, String> template = buildPacs002Template(message);
-    }
+    protected void replyToPayment(String message, String status) {
 
-    private Map<String, String> buildPacs002Template(Message message){
-        Map<String, String> templateData = new HashMap<>();
-
-//        templateData.put("fr_bicfi", message.getFIToFICstmrCdtTrf().getGrpHdr().)
-        return templateData;
     }
 }
 
